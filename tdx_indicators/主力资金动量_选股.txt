@@ -1,0 +1,46 @@
+{===========================================}
+{  主力资金+动量 选股公式                   }
+{  筛选：洗盘结束启动 / 资金回流            }
+{===========================================}
+
+{======== MACD变种 ========}
+BBA1:=EMA(C,6)-EMA(C,12);
+BBA2:=EMA(BBA1,5);
+BBA3:=BBA1-BBA2;
+
+{======== 资金流向 ========}
+BBA4:=ABS(C-O);
+BBA5:=VOL/((H-L)*2-BBA4);
+BBA6:=IF(C>O,BBA5*(H-L),IF(C<O,BBA5*(H-O+(C-L)),VOL/2))+IF(C>O,0-BBA5*(H-C+(O-L)),IF(C<O,0-BBA5*(H-L),0-VOL/2));
+BBA7:=BBA6/20/1.15;
+BBA8:=EMA(BBA7*0.55+REF(BBA7,1)*0.33+REF(BBA7,2)*0.22,3);
+
+{======== 位置指标 ========}
+BBA9:=100-3*SMA((CLOSE-LLV(LOW,75))/(HHV(HIGH,75)-LLV(LOW,75))*100,20,1)+2*SMA(SMA((CLOSE-LLV(LOW,75))/(HHV(HIGH,75)-LLV(LOW,75))*100,20,1),15,1);
+BBA10:=100-3*SMA((OPEN-LLV(LOW,75))/(HHV(HIGH,75)-LLV(LOW,75))*100,20,1)+2*SMA(SMA((OPEN-LLV(LOW,75))/(HHV(HIGH,75)-LLV(LOW,75))*100,20,1),15,1);
+BBA11:=BBA9<REF(BBA10,1) AND VOL>REF(VOL,1) AND CLOSE>REF(CLOSE,1);
+
+{======== CCI ========}
+BBA12:=(HIGH+LOW+CLOSE)/3;
+BBA13:=(BBA12-MA(BBA12,14))/(0.015*AVEDEV(BBA12,14));
+BBA14:=(BBA12-MA(BBA12,70))/(0.015*AVEDEV(BBA12,70));
+
+{======== 强弱位置 ========}
+BBA20:=IF(MA(100*(CLOSE-LLV(CLOSE,34))/(HHV(HIGH,34)-LLV(LOW,34)),5)-20>0,MA(100*(CLOSE-LLV(CLOSE,34))/(HHV(HIGH,34)-LLV(LOW,34)),5)-20,0);
+
+{======== 状态判断 ========}
+资金多头:=BBA8>0 AND BBA3>0;
+资金蓄势:=BBA8>0 AND BBA3<0;
+
+{======== 选股条件 ========}
+{条件1：洗盘转攻击（绿柱变紫柱）}
+洗盘转攻:=资金多头 AND REF(资金蓄势,1);
+
+{条件2：资金回流+底部放量}
+资金回流:=BBA8>0 AND REF(BBA8,1)<=0 AND BBA11;
+
+{条件3：连续资金流入+突破}
+持续流入:=COUNT(BBA8>0,5)>=4 AND C>REF(HHV(H,5),1);
+
+{======== 综合选股 ========}
+选股:洗盘转攻 OR 资金回流 OR 持续流入;

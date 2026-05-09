@@ -1,0 +1,48 @@
+# 双信号策略回测配置文件
+# 策略：布林带紫色信号 + 主力资金箭头信号
+
+# 数据配置
+data_source: tushare  # 数据源：tushare, baostock, akshare等
+data_condition:
+  skip_download: True  # 如果本地已有数据，跳过下载
+  csv_dir: ./data  # CSV数据目录
+  benchmark: 'None'  # 基准指数（可选）
+
+  # 股票列表 - 可以添加多个股票测试
+  stock_lst:
+    - '000001.SZ'  # 平安银行
+    - '600000.SH'  # 浦发银行
+    # - '000002.SZ'  # 万科A
+    # - '600519.SH'  # 贵州茅台
+
+  # 回测时间范围
+  start_time: 2024-01-01
+  end_time: 2025-10-27
+  time_freq: daily  # 日线数据
+
+# 策略参数
+test_condition:
+  # 基础设置
+  capital: 100000  # 初始资金：10万元
+  base_rate: 0.04  # 无风险利率（用于夏普比率计算）
+
+  # 布林带参数
+  bollinger_period: 20  # 布林带周期
+
+  # 止盈止损
+  profit_target: 0.10  # 止盈：10%
+  stop_loss: 0.10  # 止损：10%
+
+  # 均线参数（主力资金指标使用）
+  ma_short: 5
+  ma_long: 20
+
+# 交易成本
+order_cost:
+  close_tax: 0.001  # 卖出印花税：0.1%
+  open_commission: 0.0003  # 买入佣金：0.03%
+  close_commission: 0.0003  # 卖出佣金：0.03%
+  min_commission: 5  # 最低佣金：5元
+  slippage_fee: 0.0  # 滑点费用
+  slippage_type: general  # 滑点类型
+  trade_lim: 100  # 交易单位：100股（1手）

@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python aoruide_analysis.py:*)",
+      "Bash(python3:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:python.langchain.com)",
+      "WebFetch(domain:docs.langchain.com)",
+      "Bash(ls:*)",
+      "Bash(python maiwei_analysis.py:*)",
+      "Bash(source venv/bin/activate)",
+      "WebFetch(domain:301171.fupanwang.com)",
+      "WebFetch(domain:www.stcn.com)",
+      "WebFetch(domain:quote.cfi.cn)",
+      "WebSearch",
+      "Bash(python diliang_scanner.py:*)",
+      "Bash(python:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

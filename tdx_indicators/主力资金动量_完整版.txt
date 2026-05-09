@@ -1,0 +1,90 @@
+{===========================================}
+{  主力资金+动量 综合指标 完整版            }
+{  原指标优化，增加买卖点信号               }
+{===========================================}
+
+{======== 第1层：MACD变种（短周期6,12）========}
+BBA1:=EMA(C,6)-EMA(C,12);
+BBA2:=EMA(BBA1,5);
+BBA3:=BBA1-BBA2;
+
+{======== 第2层：资金流向计算 ========}
+BBA4:=ABS(C-O);
+BBA5:=VOL/((H-L)*2-BBA4);
+BBA6:=IF(C>O,BBA5*(H-L),IF(C<O,BBA5*(H-O+(C-L)),VOL/2))+IF(C>O,0-BBA5*(H-C+(O-L)),IF(C<O,0-BBA5*(H-L),0-VOL/2));
+BBA7:=BBA6/20/1.15;
+BBA8:=EMA(BBA7*0.55+REF(BBA7,1)*0.33+REF(BBA7,2)*0.22,3);
+
+{======== 第3层：位置指标 ========}
+BBA9:=100-3*SMA((CLOSE-LLV(LOW,75))/(HHV(HIGH,75)-LLV(LOW,75))*100,20,1)+2*SMA(SMA((CLOSE-LLV(LOW,75))/(HHV(HIGH,75)-LLV(LOW,75))*100,20,1),15,1);
+BBA10:=100-3*SMA((OPEN-LLV(LOW,75))/(HHV(HIGH,75)-LLV(LOW,75))*100,20,1)+2*SMA(SMA((OPEN-LLV(LOW,75))/(HHV(HIGH,75)-LLV(LOW,75))*100,20,1),15,1);
+BBA11:=BBA9<REF(BBA10,1) AND VOL>REF(VOL,1) AND CLOSE>REF(CLOSE,1);
+
+{======== 第4层：CCI指标 ========}
+BBA12:=(HIGH+LOW+CLOSE)/3;
+BBA13:=(BBA12-MA(BBA12,14))/(0.015*AVEDEV(BBA12,14));
+BBA14:=(BBA12-MA(BBA12,70))/(0.015*AVEDEV(BBA12,70));
+BBA15:=IF(BBA13>=150 AND BBA13<200 AND BBA14>=150 AND BBA14<200,10,0);
+BBA16:=IF(BBA13<=-150 AND BBA13>-200 AND BBA14<=-150 AND BBA14>-200,-10,BBA15);
+
+{======== 第5层：乖离率+强弱 ========}
+BBA17:=(CLOSE-MA(CLOSE,13))/MA(CLOSE,13)*100;
+BBA18:=100-ABS(BBA17);
+BBA19:=IF(BBA18<90,BBA18,100);
+BBA20:=IF(MA(100*(CLOSE-LLV(CLOSE,34))/(HHV(HIGH,34)-LLV(LOW,34)),5)-20>0,MA(100*(CLOSE-LLV(CLOSE,34))/(HHV(HIGH,34)-LLV(LOW,34)),5)-20,0);
+
+{======== 第6层：综合评分 ========}
+BBA25:=IF(BBA14>=200 AND BBA13>=150,15,IF(BBA14<=-200 AND BBA13<=-150,-15,BBA16))+60;
+BBA26:=BBA20>48 AND BBA25>60 AND BBA19<100;
+
+{======== 主图显示：资金柱 ========}
+资金多头:=BBA8>0 AND BBA3>0;
+资金蓄势:=BBA8>0 AND BBA3<0;
+资金流出:=BBA8<0;
+
+STICKLINE(资金多头,BBA3/30,0,3,0),COLORMAGENTA;
+STICKLINE(资金蓄势,0,BBA3/30,3,0),COLORGREEN;
+STICKLINE(资金流出 AND BBA3<0,0,BBA3/30,3,0),COLORBLUE;
+
+{======== 买入信号 ========}
+{信号1：绿柱转紫柱（洗盘结束，启动上涨）}
+洗盘转攻:=资金多头 AND REF(资金蓄势,1);
+
+{信号2：资金流出转流入+MACD金叉}
+资金回流:=BBA8>0 AND REF(BBA8,1)<=0 AND BBA3>REF(BBA3,1);
+
+{信号3：底部放量信号}
+底部信号:=BBA11;
+
+{信号4：综合强势信号}
+综合强势:=BBA26;
+
+{======== 卖出信号 ========}
+{信号1：紫柱转绿柱（上涨转回调）}
+涨转调:=资金蓄势 AND REF(资金多头,1);
+
+{信号2：资金开始流出}
+资金撤:=资金流出 AND REF(BBA8,1)>0;
+
+{信号3：CCI超买+资金流出}
+超买出:=BBA13>200 AND BBA14>150 AND 资金流出;
+
+{======== 综合买点（三选一即可）========}
+买点:=洗盘转攻 OR (资金回流 AND 底部信号) OR (资金多头 AND 综合强势 AND REF(资金多头,1)=0);
+
+{======== 综合卖点 ========}
+卖点:=资金撤 OR 超买出;
+
+{======== 信号显示 ========}
+DRAWTEXT(买点,BBA3/30*0.8,'买'),COLORYELLOW;
+DRAWICON(买点,BBA3/30*0.5,1);
+
+DRAWTEXT(洗盘转攻 AND NOT(REF(洗盘转攻,1)),BBA3/30*1.2,'启动'),COLORMAGENTA;
+
+DRAWTEXT(卖点,BBA3/30*1.2,'卖'),COLORGREEN;
+DRAWICON(卖点,BBA3/30*0.5,2);
+
+{======== 状态文字 ========}
+DRAWTEXT_FIX(资金多头,0.01,0.9,0,'【主力做多】'),COLORMAGENTA;
+DRAWTEXT_FIX(资金蓄势,0.01,0.9,0,'【洗盘蓄势】'),COLORGREEN;
+DRAWTEXT_FIX(资金流出,0.01,0.9,0,'【资金流出】'),COLORBLUE;

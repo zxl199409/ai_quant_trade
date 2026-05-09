@@ -1,0 +1,14 @@
+flake8>=3.9.0
+pandas>=1.5.0
+tushare>=1.2.85
+yfinance>=0.1.70
+scikit-learn>=1.0.0
+PyQt5
+matplotlib>=3.5.0
+ffn>=0.3.6
+PyYAML>=5.4.1
+mplfinance>=0.12.10b0
+typeguard>=2.13.0
+numpy>=1.21.0
+chinese-calendar>=1.7.2
+akshare>=1.8.0
